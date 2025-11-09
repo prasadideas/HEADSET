@@ -1,0 +1,291 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace ScaryHouse
+{
+    public partial class Form1 : Form
+    {
+        private const int NodesPerGroup = 10;
+        private List<Label> batteryLabels = new List<Label>();
+        private List<Panel> nodeLights = new List<Panel>();
+        private SimpleMqttClient mqttClient;
+
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private async void Form1_Load(object sender, EventArgs e)
+        {
+            // create node controls
+            CreateNodeControls(flowGroup1, 0);
+            CreateNodeControls(flowGroup2, NodesPerGroup);
+            CreateNodeControls(flowGroup3, NodesPerGroup * 2);
+
+            timer1.Start();
+
+            // try auto connect
+            await SetupMqttClient();
+        }
+
+        private void CreateNodeControls(FlowLayoutPanel panel, int startIndex)
+        {
+            for (int i = 0; i < NodesPerGroup; i++)
+            {
+                var container = new Panel();
+                container.Width = panel.ClientSize.Width - 25;
+                container.Height = 40;
+
+                var light = new Panel();
+                light.Width = 24;
+                light.Height = 24;
+                light.Left = 4;
+                light.Top = 8;
+                light.BackColor = Color.Red;
+                light.BorderStyle = BorderStyle.FixedSingle;
+
+                var lbl = new Label();
+                lbl.AutoSize = false;
+                lbl.Width = container.Width - 40;
+                lbl.Left = 36;
+                lbl.Top = 10;
+                lbl.Height = 20;
+                lbl.Text = $"Node {startIndex + i + 1}: Battery: --%";
+
+                container.Controls.Add(light);
+                container.Controls.Add(lbl);
+                panel.Controls.Add(container);
+
+                nodeLights.Add(light);
+                batteryLabels.Add(lbl);
+            }
+        }
+
+        private Random rnd = new Random();
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            // simulate node updates
+            for (int i = 0; i < batteryLabels.Count; i++)
+            {
+                // randomly decide alive
+                bool alive = rnd.NextDouble() > 0.2; // 80% alive
+                nodeLights[i].BackColor = alive ? Color.LimeGreen : Color.Red;
+
+                int battery = alive ? rnd.Next(30, 100) : rnd.Next(0, 30);
+                batteryLabels[i].Text = $"Node {i + 1}: Battery: {battery}%";
+            }
+        }
+
+        private async Task SetupMqttClient()
+        {
+            try
+            {
+                if (mqttClient != null)
+                {
+                    try { await mqttClient.DisconnectAsync(); } catch { }
+                    mqttClient = null;
+                }
+
+                mqttClient = new SimpleMqttClient();
+                string host = textBoxBroker.Text;
+                await mqttClient.ConnectAsync(host, 1883, "ScaryHouseClient");
+                Invoke(new Action(() => buttonConnect.Text = "Connected"));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("MQTT connect failed: " + ex.Message);
+            }
+        }
+
+        private async void buttonConnect_Click(object sender, EventArgs e)
+        {
+            if (mqttClient != null && mqttClient.IsConnected)
+            {
+                await mqttClient.DisconnectAsync();
+                buttonConnect.Text = "Connect MQTT";
+                return;
+            }
+
+            await SetupMqttClient();
+        }
+
+        private void buttonUpdateConfig_Click(object sender, EventArgs e)
+        {
+            // placeholder for configuration update
+            MessageBox.Show("Configuration updated (placeholder)");
+        }
+
+        private async void buttonPub1_Click(object sender, EventArgs e)
+        {
+            await PublishIfConnected("music/group1", "play");
+        }
+
+        private async void buttonPub2_Click(object sender, EventArgs e)
+        {
+            await PublishIfConnected("music/group2", "play");
+        }
+
+        private async void buttonPub3_Click(object sender, EventArgs e)
+        {
+            await PublishIfConnected("music/group3", "play");
+        }
+
+        private async Task PublishIfConnected(string topic, string payload)
+        {
+            if (mqttClient == null || !mqttClient.IsConnected)
+            {
+                MessageBox.Show("Not connected to MQTT broker");
+                return;
+            }
+
+            try
+            {
+                await mqttClient.PublishAsync(topic, Encoding.UTF8.GetBytes(payload));
+                MessageBox.Show($"Published to {topic}");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Publish failed: " + ex.Message);
+            }
+        }
+    }
+
+    // Minimal MQTT 3.1.1 client for simple publish (QoS 0) and connect.
+    internal class SimpleMqttClient : IDisposable
+    {
+        private TcpClient tcp;
+        private NetworkStream stream;
+        public bool IsConnected { get; private set; }
+
+        public async Task ConnectAsync(string host, int port, string clientId)
+        {
+            tcp = new TcpClient();
+            await tcp.ConnectAsync(host, port);
+            stream = tcp.GetStream();
+
+            // Build CONNECT packet
+            var protocolName = Encoding.ASCII.GetBytes("MQTT");
+            var payloadClientId = Encoding.UTF8.GetBytes(clientId);
+
+            var variableHeader = new List<byte>();
+            // protocol name
+            variableHeader.AddRange(EncodeString(protocolName));
+            // protocol level 4
+            variableHeader.Add(0x04);
+            // connect flags: clean session
+            variableHeader.Add(0x02);
+            // keep alive (MSB, LSB)
+            variableHeader.Add(0); variableHeader.Add(60);
+
+            var payload = new List<byte>();
+            payload.AddRange(EncodeString(payloadClientId));
+
+            var remaining = EncodeRemainingLength(variableHeader.Count + payload.Count);
+            var packet = new List<byte>();
+            packet.Add(0x10); // CONNECT
+            packet.AddRange(remaining);
+            packet.AddRange(variableHeader);
+            packet.AddRange(payload);
+
+            await stream.WriteAsync(packet.ToArray(), 0, packet.Count);
+            await stream.FlushAsync();
+
+            // read CONNACK (4 bytes expected)
+            var header = new byte[4];
+            int read = 0;
+            while (read < 4)
+            {
+                int r = await stream.ReadAsync(header, read, 4 - read);
+                if (r == 0) throw new Exception("Disconnected while waiting CONNACK");
+                read += r;
+            }
+
+            // header[0] should be 0x20, header[1] remaining = 2, header[2] ack flags, header[3] return code
+            if (header[0] != 0x20 || header[3] != 0x00)
+            {
+                throw new Exception($"CONNACK failed, code={header[3]}");
+            }
+
+            IsConnected = true;
+        }
+
+        public async Task PublishAsync(string topic, byte[] payload)
+        {
+            if (!IsConnected) throw new InvalidOperationException("Not connected");
+
+            var topicBytes = Encoding.UTF8.GetBytes(topic);
+            var variable = EncodeString(topicBytes);
+
+            var remainingLength = variable.Length + payload.Length;
+            var remaining = EncodeRemainingLength(remainingLength);
+
+            var packet = new List<byte>();
+            packet.Add(0x30); // PUBLISH, QoS0
+            packet.AddRange(remaining);
+            packet.AddRange(variable);
+            packet.AddRange(payload);
+
+            await stream.WriteAsync(packet.ToArray(), 0, packet.Count);
+            await stream.FlushAsync();
+        }
+
+        public async Task DisconnectAsync()
+        {
+            try
+            {
+                if (!IsConnected) return;
+                // send DISCONNECT
+                var pkt = new byte[] { 0xE0, 0x00 };
+                await stream.WriteAsync(pkt, 0, pkt.Length);
+                await stream.FlushAsync();
+            }
+            catch { }
+            finally
+            {
+                IsConnected = false;
+                try { stream?.Close(); } catch { }
+                try { tcp?.Close(); } catch { }
+            }
+        }
+
+        private static byte[] EncodeString(byte[] data)
+        {
+            var len = data.Length;
+            var result = new byte[2 + len];
+            result[0] = (byte)((len >> 8) & 0xFF);
+            result[1] = (byte)(len & 0xFF);
+            Buffer.BlockCopy(data, 0, result, 2, len);
+            return result;
+        }
+
+        private static byte[] EncodeRemainingLength(int length)
+        {
+            var bytes = new List<byte>();
+            int x = length;
+            do
+            {
+                byte encoded = (byte)(x % 128);
+                x = x / 128;
+                if (x > 0)
+                {
+                    encoded = (byte)(encoded | 128);
+                }
+                bytes.Add(encoded);
+            } while (x > 0);
+            return bytes.ToArray();
+        }
+
+        public void Dispose()
+        {
+            try { stream?.Dispose(); } catch { }
+            try { tcp?.Dispose(); } catch { }
+        }
+    }
+}

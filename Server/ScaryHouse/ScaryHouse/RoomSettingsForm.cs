@@ -1,0 +1,93 @@
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using System.Windows.Forms;
+
+namespace ScaryHouse
+{
+    public class RoomSettingsForm : Form
+    {
+        private RoomConfig config;
+        private List<NumericUpDown> inputs = new List<NumericUpDown>();
+        private Button btnSave;
+        private Button btnSetAll;
+        private NumericUpDown nudSetAll;
+
+        public RoomSettingsForm(RoomConfig cfg)
+        {
+            this.config = cfg;
+            Initialize();
+        }
+
+        private void Initialize()
+        {
+            this.Text = "Room Timers";
+            this.Size = new Size(420, 600);
+            this.StartPosition = FormStartPosition.CenterParent;
+            this.FormBorderStyle = FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
+
+            var panel = new FlowLayoutPanel();
+            panel.Dock = DockStyle.Fill;
+            panel.FlowDirection = FlowDirection.TopDown;
+            panel.Padding = new Padding(10);
+            panel.AutoScroll = true;
+            this.Controls.Add(panel);
+
+            for (int i = 0; i < 15; i++)
+            {
+                var p = new Panel();
+                p.Width = 360; p.Height = 36;
+
+                var lbl = new Label();
+                lbl.Text = $"Room {i + 1}";
+                lbl.Left = 4; lbl.Top = 8; lbl.Width = 120;
+
+                var nud = new NumericUpDown();
+                nud.Left = 130; nud.Top = 4; nud.Width = 80;
+                nud.Minimum = 1; nud.Maximum = 3600;
+                nud.Value = config.RoomSeconds[i];
+
+                p.Controls.Add(lbl);
+                p.Controls.Add(nud);
+                panel.Controls.Add(p);
+
+                inputs.Add(nud);
+            }
+
+            var bottom = new Panel();
+            bottom.Height = 60; bottom.Dock = DockStyle.Bottom;
+
+            btnSave = new Button() { Text = "Save", Width = 90, Left = 200, Top = 12 };
+            btnSave.Click += BtnSave_Click;
+
+            btnSetAll = new Button() { Text = "Set All", Width = 90, Left = 20, Top = 12 };
+            btnSetAll.Click += BtnSetAll_Click;
+
+            nudSetAll = new NumericUpDown() { Left = 120, Top = 14, Width = 60, Minimum = 1, Maximum = 3600, Value = 20 };
+
+            bottom.Controls.Add(btnSetAll);
+            bottom.Controls.Add(nudSetAll);
+            bottom.Controls.Add(btnSave);
+            this.Controls.Add(bottom);
+        }
+
+        private void BtnSetAll_Click(object sender, EventArgs e)
+        {
+            int v = (int)nudSetAll.Value;
+            foreach (var n in inputs) n.Value = v;
+        }
+
+        private void BtnSave_Click(object sender, EventArgs e)
+        {
+            for (int i = 0; i < 15; i++)
+            {
+                config.RoomSeconds[i] = (int)inputs[i].Value;
+            }
+            config.Save();
+            this.DialogResult = DialogResult.OK;
+            this.Close();
+        }
+    }
+}

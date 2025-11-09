@@ -1,0 +1,11 @@
+F:\kumar\HEADSET\Server\ScaryHouse\ScaryHouse\obj\Debug\ScaryHouse.csproj.AssemblyReference.cache
+F:\kumar\HEADSET\Server\ScaryHouse\ScaryHouse\obj\Debug\ScaryHouse.Properties.Resources.resources
+F:\kumar\HEADSET\Server\ScaryHouse\ScaryHouse\obj\Debug\ScaryHouse.csproj.GenerateResource.cache
+F:\kumar\HEADSET\Server\ScaryHouse\ScaryHouse\obj\Debug\ScaryHouse.csproj.CoreCompileInputs.cache
+F:\kumar\HEADSET\Server\ScaryHouse\ScaryHouse\bin\Debug\ScaryHouse.exe.config
+F:\kumar\HEADSET\Server\ScaryHouse\ScaryHouse\bin\Debug\ScaryHouse.exe
+F:\kumar\HEADSET\Server\ScaryHouse\ScaryHouse\bin\Debug\ScaryHouse.pdb
+F:\kumar\HEADSET\Server\ScaryHouse\ScaryHouse\obj\Debug\ScaryHouse.exe
+F:\kumar\HEADSET\Server\ScaryHouse\ScaryHouse\obj\Debug\ScaryHouse.pdb
+F:\kumar\HEADSET\Server\ScaryHouse\ScaryHouse\obj\Debug\ScaryHouse.exe.config
+F:\kumar\HEADSET\Server\ScaryHouse\ScaryHouse\obj\Debug\ScaryHouse.Form1.resources

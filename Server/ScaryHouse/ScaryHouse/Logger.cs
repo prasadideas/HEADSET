@@ -1,0 +1,31 @@
+using System;
+using System.IO;
+using System.Text;
+
+namespace ScaryHouse
+{
+    internal static class Logger
+    {
+        private static readonly object _lock = new object();
+        private static string GetLogPath()
+        {
+            var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ScaryHouse");
+            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+            return Path.Combine(dir, "scaryhouse.log");
+        }
+
+        public static void Log(string message)
+        {
+            try
+            {
+                var path = GetLogPath();
+                var line = $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] {message}{Environment.NewLine}";
+                lock (_lock)
+                {
+                    File.AppendAllText(path, line, Encoding.UTF8);
+                }
+            }
+            catch { }
+        }
+    }
+}
