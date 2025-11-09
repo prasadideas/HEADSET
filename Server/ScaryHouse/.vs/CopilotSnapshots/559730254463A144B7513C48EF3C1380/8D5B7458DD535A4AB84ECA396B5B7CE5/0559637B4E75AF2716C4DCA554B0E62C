@@ -28,20 +28,6 @@ namespace ScaryHouse
         private Dictionary<string, bool> isOnline = new Dictionary<string, bool>();
         private TimeSpan offlineTimeout; // will initialize from numericTimeout
 
-        // New: track which maingate was last activated and per-group set of eachgate numbers already handled
-        private int lastActiveMainGate = 0; // 0 = none, 1..3 = groups
-        private Dictionary<int, HashSet<int>> groupActivatedEachGates = new Dictionary<int, HashSet<int>>();
-
-        // Activation order and lag policy
-        private Dictionary<int, int> activationOrder = new Dictionary<int, int>(); // group -> order (1 = first)
-        private int activationCounter = 0;
-        private const int Lag = 3; // leader must be ahead by at least this many gates
-
-        // ensure play publish happens only once per group
-        private Dictionary<int, bool> playPublished = new Dictionary<int, bool>();
-        // per-group per-gate published flags
-        private Dictionary<int, HashSet<int>> playPublishedGates = new Dictionary<int, HashSet<int>>();
-
         public Form1()
         {
             InitializeComponent();
@@ -49,15 +35,6 @@ namespace ScaryHouse
             groupMappings[1] = new Dictionary<string, int>();
             groupMappings[2] = new Dictionary<string, int>();
             groupMappings[3] = new Dictionary<string, int>();
-
-            // initialize per-group activated eachgate sets
-            groupActivatedEachGates[1] = new HashSet<int>();
-            groupActivatedEachGates[2] = new HashSet<int>();
-            groupActivatedEachGates[3] = new HashSet<int>();
-
-            // initialize playPublished flags
-            playPublished[1] = false; playPublished[2] = false; playPublished[3] = false;
-            playPublishedGates[1] = new HashSet<int>(); playPublishedGates[2] = new HashSet<int>(); playPublishedGates[3] = new HashSet<int>();
 
             roomConfig = RoomConfig.Load();
 
@@ -284,14 +261,6 @@ namespace ScaryHouse
             });
         }
 
-        // helper: next expected eachgate number for a group (1..15), or -1 if none
-        private int GetNextExpectedForGroup(int group)
-        {
-            if (!groupActivatedEachGates.TryGetValue(group, out var set)) return 1;
-            for (int i = 1; i <= 15; i++) if (!set.Contains(i)) return i;
-            return -1;
-        }
-
         private void HandleMainDoorMessage(string payload)
         {
             // payload expected 2-digit switch number "00","01","02","03"
@@ -306,17 +275,6 @@ namespace ScaryHouse
 
             // mark green (persistent until reset)
             MarkGridCellPersistent(row, col);
-
-            // update last active maingate so subsequent eachgate messages are applied to this group
-            lastActiveMainGate = switchNum;
-
-            // record activation order if first time
-            if (!activationOrder.ContainsKey(switchNum))
-            {
-                activationCounter++;
-                activationOrder[switchNum] = activationCounter;
-            }
-
             Logger.Log($"MainDoor switch {val} pressed -> Group {row + 1} maingate");
         }
 
@@ -327,128 +285,9 @@ namespace ScaryHouse
             if (!int.TryParse(val, out int gateNum)) return;
             if (gateNum < 1 || gateNum > 15) return;
 
-            // Determine which group should receive this eachgate event.
-            // Priority: if lastActiveMainGate expects this gateNum -> use it.
-            // Otherwise, find any group whose next expected equals gateNum.
-            int targetGroup = -1;
-
-            if (lastActiveMainGate >= 1 && lastActiveMainGate <= 3)
-            {
-                int next = GetNextExpectedForGroup(lastActiveMainGate);
-                if (next == gateNum) targetGroup = lastActiveMainGate;
-            }
-
-            if (targetGroup == -1)
-            {
-                for (int g = 1; g <= 3; g++)
-                {
-                    int next = GetNextExpectedForGroup(g);
-                    if (next == gateNum) { targetGroup = g; break; }
-                }
-            }
-
-            if (targetGroup == -1)
-            {
-                Logger.Log($"EachGate event {val} ignored - no group expects gate {gateNum}");
-                return;
-            }
-
-            var set = groupActivatedEachGates[targetGroup];
-            if (set.Contains(gateNum))
-            {
-                Logger.Log($"EachGate {val} for Group {targetGroup} ignored - already activated");
-                return;
-            }
-
-            // Enforce fixed lag policy: previous-activated group must be ahead by at least Lag gates
-            // Determine previous group (immediately earlier in activation order) for the targetGroup
-            int prevGroup = -1;
-            if (activationOrder.TryGetValue(targetGroup, out int targetOrder) && targetOrder > 1)
-            {
-                int desiredOrder = targetOrder - 1;
-                var kv = activationOrder.FirstOrDefault(x => x.Value == desiredOrder);
-                if (!kv.Equals(default(KeyValuePair<int,int>))) prevGroup = kv.Key;
-            }
-
-            if (prevGroup != -1 && prevGroup != targetGroup)
-            {
-                int prevProgress = GetNextExpectedForGroup(prevGroup) - 1;
-                int followerProgress = GetNextExpectedForGroup(targetGroup) - 1;
-                if (prevProgress - followerProgress < Lag)
-                {
-                    Logger.Log($"EachGate {val} for Group {targetGroup} denied - previous Group {prevGroup} progress {prevProgress} too close to follower {followerProgress}");
-                    // Try to reassign to earlier groups (starting from most recent previous) if any expects this gate and is allowed
-                    bool reassigned = false;
-                    var ordered = activationOrder.OrderByDescending(kv => kv.Value).Select(kv => kv.Key).ToList();
-                    foreach (var g in ordered)
-                    {
-                        if (g == targetGroup) continue;
-                        int nextg = GetNextExpectedForGroup(g);
-                        if (nextg != gateNum) continue;
-                        // check its previous
-                        int pg = -1;
-                        if (activationOrder.TryGetValue(g, out int ordg) && ordg > 1)
-                        {
-                            var kvp = activationOrder.FirstOrDefault(x => x.Value == ordg - 1);
-                            if (!kvp.Equals(default(KeyValuePair<int,int>))) pg = kvp.Key;
-                        }
-                        if (pg != -1)
-                        {
-                            int prevgProgress = GetNextExpectedForGroup(pg) - 1;
-                            int gProgress = GetNextExpectedForGroup(g) - 1;
-                            if (prevgProgress - gProgress < Lag) continue; // not allowed
-                        }
-
-                        // assign to g
-                        targetGroup = g; set = groupActivatedEachGates[targetGroup];
-                        reassigned = true; break;
-                    }
-
-                    if (!reassigned)
-                    {
-                        return;
-                    }
-                }
-            }
-
-            // mark persistent for target group only
-            int row = targetGroup - 1;
-            int col = 1 + gateNum; // columns: 0=Group,1=maingate,2=01,...
-            MarkGridCellPersistent(row, col);
-
-            // remember that this eachgate has been activated for this group
-            set.Add(gateNum);
-
-            // schedule one-time delayed publish for this group's gate if not already done
-            if (!playPublishedGates.TryGetValue(targetGroup, out var publishedSet))
-            {
-                publishedSet = new HashSet<int>(); playPublishedGates[targetGroup] = publishedSet;
-            }
-
-            if (!publishedSet.Contains(gateNum))
-            {
-                publishedSet.Add(gateNum);
-                int delaySeconds = 20; // default
-                try { if (roomConfig?.RoomSeconds != null && roomConfig.RoomSeconds.Count >= gateNum) delaySeconds = roomConfig.RoomSeconds[gateNum - 1]; } catch { }
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        await Task.Delay(delaySeconds * 1000);
-                        string roomNo = gateNum.ToString("D2");
-                        string pubPayload = $"play,{roomNo}";
-                        string topic = $"music/group{targetGroup}";
-                        await PublishIfConnected(topic, pubPayload, false);
-                        Logger.Log($"Published scheduled play for Group {targetGroup} room {roomNo}");
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log($"Scheduled publish failed: {ex.Message}");
-                    }
-                });
-            }
-
-            Logger.Log($"EachGate event gate {val} applied to Group {targetGroup}");
+            int col = 1 + gateNum; // columns: 0=Group,1=maingate,2=01,... so gate1 -> col2
+            for (int r = 0; r < 3; r++) MarkGridCellPersistent(r, col);
+            Logger.Log($"EachGate event gate {val}");
         }
 
         private void MarkGridCellPersistent(int row, int col)
@@ -594,50 +433,38 @@ namespace ScaryHouse
         {
             groupMappings[1].Clear(); groupMappings[2].Clear(); groupMappings[3].Clear(); lastSeen.Clear(); lastBattery.Clear(); isOnline.Clear();
 
-            // reset per-group eachgate activation and last active maingate
-            groupActivatedEachGates[1].Clear(); groupActivatedEachGates[2].Clear(); groupActivatedEachGates[3].Clear();
-            lastActiveMainGate = 0;
-
-            // reset activation order
-            activationOrder.Clear();
-            activationCounter = 0;
-
-            // reset play published flags
-            playPublished[1] = false; playPublished[2] = false; playPublished[3] = false;
-            playPublishedGates[1].Clear(); playPublishedGates[2].Clear(); playPublishedGates[3].Clear();
-
             for (int i = 0; i < nodeLights.Count; i++) { int slot = (i % NodesPerGroup) + 1; nodeLights[i].FillColor = Color.Red; nodeLights[i].Invalidate(); batteryLabels[i].Text = $"HeadSet {slot}: -- | Battery: --%"; try { var parent = batteryLabels[i].Parent; var macLbl = parent.Controls.OfType<Label>().Skip(1).FirstOrDefault(); if (macLbl != null) macLbl.Text = "MAC: --"; } catch { } }
 
             ResetStatusGridColors();
 
             Logger.Log("Reset all mappings and statuses");
         }
-    
-        // CirclePanel draws an anti-aliased filled circle based on FillColor
-        internal class CirclePanel : Panel
+    }
+
+    // CirclePanel draws an anti-aliased filled circle based on FillColor
+    internal class CirclePanel : Panel
+    {
+        public Color FillColor { get; set; } = Color.Red;
+
+        public CirclePanel()
         {
-            public Color FillColor { get; set; } = Color.Red;
-
-            public CirclePanel()
-            {
-                this.SetStyle(ControlStyles.ResizeRedraw | ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint, true);
-            }
-
-            protected override void OnPaint(PaintEventArgs e)
-            {
-                e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-                using (var brush = new SolidBrush(FillColor))
-                {
-                    e.Graphics.FillEllipse(brush, 0, 0, Width - 1, Height - 1);
-                }
-                using (var pen = new Pen(Color.FromArgb(100, Color.Black)))
-                {
-                    e.Graphics.DrawEllipse(pen, 0, 0, Width - 1, Height - 1);
-                }
-                base.OnPaint(e);
-            }
+            this.SetStyle(ControlStyles.ResizeRedraw | ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint, true);
         }
 
-        // SimpleMqttClient and NetworkStreamExtensions are unchanged and exist elsewhere in the project.
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            using (var brush = new SolidBrush(FillColor))
+            {
+                e.Graphics.FillEllipse(brush, 0, 0, Width - 1, Height - 1);
+            }
+            using (var pen = new Pen(Color.FromArgb(100, Color.Black)))
+            {
+                e.Graphics.DrawEllipse(pen, 0, 0, Width - 1, Height - 1);
+            }
+            base.OnPaint(e);
+        }
     }
+
+    // SimpleMqttClient and NetworkStreamExtensions are unchanged and exist elsewhere in the project.
 }
