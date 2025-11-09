@@ -3,12 +3,12 @@
   "WorkspaceRootPath": "F:\\kumar\\HEADSET\\Server\\ScaryHouse\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{3719E301-641B-4004-9C95-2966E7E67845}|ScaryHouse\\ScaryHouse.csproj|f:\\kumar\\headset\\server\\scaryhouse\\scaryhouse\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{3719E301-641B-4004-9C95-2966E7E67845}|ScaryHouse\\ScaryHouse.csproj|solutionrelative:scaryhouse\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{3719E301-641B-4004-9C95-2966E7E67845}|ScaryHouse\\ScaryHouse.csproj|F:\\kumar\\HEADSET\\Server\\ScaryHouse\\scaryhouse\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
       "RelativeMoniker": "D:0:0:{3719E301-641B-4004-9C95-2966E7E67845}|ScaryHouse\\ScaryHouse.csproj|solutionrelative:scaryhouse\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3719E301-641B-4004-9C95-2966E7E67845}|ScaryHouse\\ScaryHouse.csproj|f:\\kumar\\headset\\server\\scaryhouse\\scaryhouse\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3719E301-641B-4004-9C95-2966E7E67845}|ScaryHouse\\ScaryHouse.csproj|solutionrelative:scaryhouse\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{3719E301-641B-4004-9C95-2966E7E67845}|ScaryHouse\\ScaryHouse.csproj|F:\\kumar\\HEADSET\\Server\\ScaryHouse\\scaryhouse\\logger.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -25,6 +25,10 @@
     {
       "AbsoluteMoniker": "D:0:0:{3719E301-641B-4004-9C95-2966E7E67845}|ScaryHouse\\ScaryHouse.csproj|F:\\kumar\\HEADSET\\Server\\ScaryHouse\\scaryhouse\\roomsettingsform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{3719E301-641B-4004-9C95-2966E7E67845}|ScaryHouse\\ScaryHouse.csproj|solutionrelative:scaryhouse\\roomsettingsform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3719E301-641B-4004-9C95-2966E7E67845}|ScaryHouse\\ScaryHouse.csproj|f:\\kumar\\headset\\server\\scaryhouse\\scaryhouse\\simplemqttclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3719E301-641B-4004-9C95-2966E7E67845}|ScaryHouse\\ScaryHouse.csproj|solutionrelative:scaryhouse\\simplemqttclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -34,8 +38,21 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 6,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "SimpleMqttClient.cs",
+              "DocumentMoniker": "F:\\kumar\\HEADSET\\Server\\ScaryHouse\\ScaryHouse\\SimpleMqttClient.cs",
+              "RelativeDocumentMoniker": "ScaryHouse\\SimpleMqttClient.cs",
+              "ToolTip": "F:\\kumar\\HEADSET\\Server\\ScaryHouse\\ScaryHouse\\SimpleMqttClient.cs",
+              "RelativeToolTip": "ScaryHouse\\SimpleMqttClient.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABYBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-09T11:26:23.591Z",
+              "EditorCaption": ""
+            },
             {
               "$type": "Document",
               "DocumentIndex": 2,
@@ -74,13 +91,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "Form1.cs",
               "DocumentMoniker": "F:\\kumar\\HEADSET\\Server\\ScaryHouse\\ScaryHouse\\Form1.cs",
               "RelativeDocumentMoniker": "ScaryHouse\\Form1.cs",
               "ToolTip": "F:\\kumar\\HEADSET\\Server\\ScaryHouse\\ScaryHouse\\Form1.cs",
               "RelativeToolTip": "ScaryHouse\\Form1.cs",
-              "ViewState": "AgIAAPAAAAAAAAAAAAAYwP4AAABJAAAAAAAAAA==",
+              "ViewState": "AgIAAF4AAAAAAAAAAAAAAHIAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-11-08T10:30:15.117Z",
               "EditorCaption": ""
@@ -95,18 +112,20 @@
               "RelativeToolTip": "ScaryHouse\\Form1.Designer.cs",
               "ViewState": "AgIAAB0BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-08T10:29:39.585Z"
+              "WhenOpened": "2025-11-08T10:29:39.585Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "Form1.cs [Design]",
               "DocumentMoniker": "F:\\kumar\\HEADSET\\Server\\ScaryHouse\\ScaryHouse\\Form1.cs",
               "RelativeDocumentMoniker": "ScaryHouse\\Form1.cs",
               "ToolTip": "F:\\kumar\\HEADSET\\Server\\ScaryHouse\\ScaryHouse\\Form1.cs [Design]",
               "RelativeToolTip": "ScaryHouse\\Form1.cs [Design]",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-08T10:24:50.007Z"
+              "WhenOpened": "2025-11-08T10:24:50.007Z",
+              "EditorCaption": " [Design]"
             }
           ]
         }

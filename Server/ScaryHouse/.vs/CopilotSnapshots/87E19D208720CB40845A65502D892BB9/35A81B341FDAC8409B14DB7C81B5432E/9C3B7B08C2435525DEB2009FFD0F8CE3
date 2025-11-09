@@ -171,6 +171,7 @@ namespace ScaryHouse
             {
                 int idx = statusGrid.Rows.Add();
                 statusGrid.Rows[idx].Cells[0].Value = "Group " + r;
+                // style the first column cell so it's visible (dark background)
                 statusGrid.Rows[idx].Cells[0].Style.BackColor = Color.FromArgb(45, 45, 48);
                 statusGrid.Rows[idx].Cells[0].Style.ForeColor = Color.White;
                 statusGrid.Rows[idx].Cells[0].Style.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
@@ -193,7 +194,7 @@ namespace ScaryHouse
                     {
                         statusGrid.Rows[r].Cells[c].Style.BackColor = Color.Red;
                         statusGrid.Rows[r].Cells[c].Style.ForeColor = Color.White;
-                        statusGrid.Rows[r].Cells[c].Value = null;
+                        statusGrid.Rows[r].Cells[c].Value = null; // no text
                     }
                 }
             }));
@@ -273,7 +274,7 @@ namespace ScaryHouse
             int row = switchNum - 1; // map 1->row0,2->row1,3->row2
             int col = 1; // maingate column index
 
-            // mark green (persistent until reset)
+            // mark green (no text)
             MarkGridCellPersistent(row, col);
             Logger.Log($"MainDoor switch {val} pressed -> Group {row + 1} maingate");
         }
@@ -290,6 +291,7 @@ namespace ScaryHouse
             Logger.Log($"EachGate event gate {val}");
         }
 
+        // mark cell green and keep until reset
         private void MarkGridCellPersistent(int row, int col)
         {
             if (statusGrid == null) return;
@@ -301,7 +303,7 @@ namespace ScaryHouse
                 var cell = statusGrid.Rows[row].Cells[col];
                 cell.Style.BackColor = Color.LimeGreen;
                 cell.Style.ForeColor = Color.Black;
-                cell.Value = null; // keep no text
+                cell.Value = null; // no text
             }));
         }
 
@@ -312,6 +314,7 @@ namespace ScaryHouse
 
         private void timer1_Tick(object sender, EventArgs e)
         {
+            // offline detection for headsets only (no table timeout)
             var now = DateTime.UtcNow;
             foreach (var kv in lastSeen.ToList())
             {
@@ -417,7 +420,6 @@ namespace ScaryHouse
             }
         }
 
-        // Add missing pub handlers (wired in designer)
         private async void buttonPub1_Click(object sender, EventArgs e) => await PublishIfConnected("music/group1", "play");
         private async void buttonPub2_Click(object sender, EventArgs e) => await PublishIfConnected("music/group2", "play");
         private async void buttonPub3_Click(object sender, EventArgs e) => await PublishIfConnected("music/group3", "play");
@@ -431,10 +433,20 @@ namespace ScaryHouse
 
         private void buttonReset_Click(object sender, EventArgs e)
         {
-            groupMappings[1].Clear(); groupMappings[2].Clear(); groupMappings[3].Clear(); lastSeen.Clear(); lastBattery.Clear(); isOnline.Clear();
+            // clear mappings and last seen/battery
+            groupMappings[1].Clear(); groupMappings[2].Clear(); groupMappings[3].Clear();
+            lastSeen.Clear(); lastBattery.Clear(); isOnline.Clear();
 
-            for (int i = 0; i < nodeLights.Count; i++) { int slot = (i % NodesPerGroup) + 1; nodeLights[i].FillColor = Color.Red; nodeLights[i].Invalidate(); batteryLabels[i].Text = $"HeadSet {slot}: -- | Battery: --%"; try { var parent = batteryLabels[i].Parent; var macLbl = parent.Controls.OfType<Label>().Skip(1).FirstOrDefault(); if (macLbl != null) macLbl.Text = "MAC: --"; } catch { } }
+            // reset UI
+            for (int i = 0; i < nodeLights.Count; i++)
+            {
+                int slot = (i % NodesPerGroup) + 1;
+                nodeLights[i].FillColor = Color.Red; nodeLights[i].Invalidate();
+                batteryLabels[i].Text = $"HeadSet {slot}: -- | Battery: --%";
+                try { var parent = batteryLabels[i].Parent; var macLbl = parent.Controls.OfType<Label>().Skip(1).FirstOrDefault(); if (macLbl != null) macLbl.Text = "MAC: --"; } catch { }
+            }
 
+            // reset grid colors to red (no text)
             ResetStatusGridColors();
 
             Logger.Log("Reset all mappings and statuses");
@@ -466,5 +478,6 @@ namespace ScaryHouse
         }
     }
 
-    // SimpleMqttClient and NetworkStreamExtensions are unchanged and exist elsewhere in the project.
+    // SimpleMqttClient and NetworkStreamExtensions unchanged from previous working implementation
+    // ... keep existing SimpleMqttClient and NetworkStreamExtensions code ...
 }

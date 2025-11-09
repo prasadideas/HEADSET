@@ -417,11 +417,6 @@ namespace ScaryHouse
             }
         }
 
-        // Add missing pub handlers (wired in designer)
-        private async void buttonPub1_Click(object sender, EventArgs e) => await PublishIfConnected("music/group1", "play");
-        private async void buttonPub2_Click(object sender, EventArgs e) => await PublishIfConnected("music/group2", "play");
-        private async void buttonPub3_Click(object sender, EventArgs e) => await PublishIfConnected("music/group3", "play");
-
         private async Task PublishIfConnected(string topic, string payload, bool showMessage = true)
         {
             if (mqttClient == null || !mqttClient.IsConnected) { if (showMessage) MessageBox.Show("Not connected to MQTT broker"); return; }

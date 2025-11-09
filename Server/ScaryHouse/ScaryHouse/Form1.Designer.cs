@@ -66,7 +66,7 @@
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 1;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(1134, 598);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(1161, 815);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
             // flowGroup1
@@ -76,7 +76,7 @@
             this.flowGroup1.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.flowGroup1.Location = new System.Drawing.Point(3, 3);
             this.flowGroup1.Name = "flowGroup1";
-            this.flowGroup1.Size = new System.Drawing.Size(277, 592);
+            this.flowGroup1.Size = new System.Drawing.Size(284, 809);
             this.flowGroup1.TabIndex = 0;
             this.flowGroup1.WrapContents = false;
             // 
@@ -85,9 +85,9 @@
             this.flowGroup2.AutoScroll = true;
             this.flowGroup2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flowGroup2.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.flowGroup2.Location = new System.Drawing.Point(286, 3);
+            this.flowGroup2.Location = new System.Drawing.Point(293, 3);
             this.flowGroup2.Name = "flowGroup2";
-            this.flowGroup2.Size = new System.Drawing.Size(277, 592);
+            this.flowGroup2.Size = new System.Drawing.Size(284, 809);
             this.flowGroup2.TabIndex = 1;
             this.flowGroup2.WrapContents = false;
             // 
@@ -96,9 +96,9 @@
             this.flowGroup3.AutoScroll = true;
             this.flowGroup3.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flowGroup3.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.flowGroup3.Location = new System.Drawing.Point(569, 3);
+            this.flowGroup3.Location = new System.Drawing.Point(583, 3);
             this.flowGroup3.Name = "flowGroup3";
-            this.flowGroup3.Size = new System.Drawing.Size(277, 592);
+            this.flowGroup3.Size = new System.Drawing.Size(284, 809);
             this.flowGroup3.TabIndex = 2;
             this.flowGroup3.WrapContents = false;
             // 
@@ -117,10 +117,10 @@
             this.flowControls.Controls.Add(this.buttonReset);
             this.flowControls.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flowControls.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.flowControls.Location = new System.Drawing.Point(852, 3);
+            this.flowControls.Location = new System.Drawing.Point(873, 3);
             this.flowControls.Name = "flowControls";
             this.flowControls.Padding = new System.Windows.Forms.Padding(10);
-            this.flowControls.Size = new System.Drawing.Size(279, 592);
+            this.flowControls.Size = new System.Drawing.Size(285, 809);
             this.flowControls.TabIndex = 3;
             this.flowControls.WrapContents = false;
             // 
@@ -249,7 +249,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1134, 598);
+            this.ClientSize = new System.Drawing.Size(1161, 815);
             this.Controls.Add(this.tableLayoutPanel1);
             this.Name = "Form1";
             this.Text = "ScaryHouse - Node Monitor";
