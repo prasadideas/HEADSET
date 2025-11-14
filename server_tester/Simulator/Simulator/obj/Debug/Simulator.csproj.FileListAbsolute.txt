@@ -1,0 +1,14 @@
+F:\kumar\HEADSET\server_tester\Simulator\Simulator\bin\Debug\Simulator.exe.config
+F:\kumar\HEADSET\server_tester\Simulator\Simulator\bin\Debug\Simulator.exe
+F:\kumar\HEADSET\server_tester\Simulator\Simulator\bin\Debug\Simulator.pdb
+F:\kumar\HEADSET\server_tester\Simulator\Simulator\bin\Debug\MQTTnet.dll
+F:\kumar\HEADSET\server_tester\Simulator\Simulator\bin\Debug\MQTTnet.xml
+F:\kumar\HEADSET\server_tester\Simulator\Simulator\obj\Debug\Simulator.csproj.AssemblyReference.cache
+F:\kumar\HEADSET\server_tester\Simulator\Simulator\obj\Debug\Simulator.Form1.resources
+F:\kumar\HEADSET\server_tester\Simulator\Simulator\obj\Debug\Simulator.Properties.Resources.resources
+F:\kumar\HEADSET\server_tester\Simulator\Simulator\obj\Debug\Simulator.csproj.GenerateResource.cache
+F:\kumar\HEADSET\server_tester\Simulator\Simulator\obj\Debug\Simulator.csproj.CoreCompileInputs.cache
+F:\kumar\HEADSET\server_tester\Simulator\Simulator\obj\Debug\Simulator.csproj.Up2Date
+F:\kumar\HEADSET\server_tester\Simulator\Simulator\obj\Debug\Simulator.exe
+F:\kumar\HEADSET\server_tester\Simulator\Simulator\obj\Debug\Simulator.pdb
+F:\kumar\HEADSET\server_tester\Simulator\Simulator\obj\Debug\Simulator.exe.config

@@ -13,7 +13,7 @@ namespace ScaryHouse
 {
     public partial class Form1 : Form
     {
-        private const int NodesPerGroup = 10;
+        private const int NodesPerGroup = 5;
         private List<Label> batteryLabels = new List<Label>();
         private List<CirclePanel> nodeLights = new List<CirclePanel>();
         private SimpleMqttClient mqttClient;
@@ -36,6 +36,9 @@ namespace ScaryHouse
         private Dictionary<int, int> activationOrder = new Dictionary<int, int>(); // group -> order (1 = first)
         private int activationCounter = 0;
         private const int Lag = 3; // leader must be ahead by at least this many gates
+
+        private int number_of_scaries = 18;
+        // private int number_of_headset_per_group = 5;
 
         // ensure play publish happens only once per group
         private Dictionary<int, bool> playPublished = new Dictionary<int, bool>();
@@ -60,6 +63,9 @@ namespace ScaryHouse
             playPublishedGates[1] = new HashSet<int>(); playPublishedGates[2] = new HashSet<int>(); playPublishedGates[3] = new HashSet<int>();
 
             roomConfig = RoomConfig.Load();
+
+            // set number_of_scaries from configuration
+            try { number_of_scaries = roomConfig?.NumberOfRooms ?? number_of_scaries; } catch { }
 
             try { offlineTimeout = TimeSpan.FromSeconds((double)numericTimeout.Value); }
             catch { offlineTimeout = TimeSpan.FromSeconds(20); }
@@ -182,7 +188,7 @@ namespace ScaryHouse
             statusGrid.Columns[0].Width = 80;
             statusGrid.Columns.Add("colMain", "maingate");
             statusGrid.Columns[1].Width = 70;
-            for (int i = 1; i <= 15; i++)
+            for (int i = 1; i <= number_of_scaries; i++)
             {
                 var name = i.ToString("D2");
                 statusGrid.Columns.Add("col" + name, name);
@@ -284,11 +290,11 @@ namespace ScaryHouse
             });
         }
 
-        // helper: next expected eachgate number for a group (1..15), or -1 if none
+        // helper: next expected eachgate number for a group (1..number_of_scaries), or -1 if none
         private int GetNextExpectedForGroup(int group)
         {
             if (!groupActivatedEachGates.TryGetValue(group, out var set)) return 1;
-            for (int i = 1; i <= 15; i++) if (!set.Contains(i)) return i;
+            for (int i = 1; i <= number_of_scaries; i++) if (!set.Contains(i)) return i;
             return -1;
         }
 
@@ -325,7 +331,7 @@ namespace ScaryHouse
             if (string.IsNullOrWhiteSpace(payload) || payload.Length < 2) return;
             var val = payload.Trim();
             if (!int.TryParse(val, out int gateNum)) return;
-            if (gateNum < 1 || gateNum > 15) return;
+            if (gateNum < 1 || gateNum > number_of_scaries) return;
 
             // Determine which group should receive this eachgate event.
             // Priority: if lastActiveMainGate expects this gateNum -> use it.
@@ -567,12 +573,33 @@ namespace ScaryHouse
             await SetupMqttClient();
         }
 
+        private void RecreateStatusGrid()
+        {
+            try
+            {
+                if (statusGrid != null)
+                {
+                    this.Controls.Remove(statusGrid);
+                    try { statusGrid.Dispose(); } catch { }
+                    statusGrid = null;
+                }
+            }
+            catch { }
+            CreateStatusGrid();
+        }
+
         private void buttonUpdateConfig_Click(object sender, EventArgs e)
         {
             using (var dlg = new RoomSettingsForm(roomConfig))
             {
                 if (dlg.ShowDialog(this) == DialogResult.OK)
                 {
+                    // reload config and apply number_of_scaries
+                    roomConfig = RoomConfig.Load();
+                    try { number_of_scaries = roomConfig?.NumberOfRooms ?? number_of_scaries; } catch { }
+
+                    RecreateStatusGrid();
+
                     Logger.Log("Room timers updated"); MessageBox.Show("Room timers saved");
                 }
             }

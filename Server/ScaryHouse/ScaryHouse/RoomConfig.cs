@@ -8,6 +8,7 @@ namespace ScaryHouse
     [Serializable]
     public class RoomConfig
     {
+        public int NumberOfRooms { get; set; } = 15; // default
         public List<int> RoomSeconds { get; set; } = new List<int>();
 
         private static string GetConfigPath()
@@ -25,7 +26,9 @@ namespace ScaryHouse
                 if (!File.Exists(path))
                 {
                     var def = new RoomConfig();
-                    for (int i = 0; i < 15; i++) def.RoomSeconds.Add(20); // default 20s
+                    if (def.NumberOfRooms < 1) def.NumberOfRooms = 15;
+                    if (def.NumberOfRooms > 20) def.NumberOfRooms = 20;
+                    for (int i = 0; i < def.NumberOfRooms; i++) def.RoomSeconds.Add(20); // default 20s
                     def.Save();
                     return def;
                 }
@@ -34,17 +37,25 @@ namespace ScaryHouse
                 {
                     var xs = new XmlSerializer(typeof(RoomConfig));
                     var cfg = (RoomConfig)xs.Deserialize(fs);
-                    // ensure size 15
+                    if (cfg == null) cfg = new RoomConfig();
+                    // normalize NumberOfRooms
+                    if (cfg.NumberOfRooms < 1) cfg.NumberOfRooms = 1;
+                    if (cfg.NumberOfRooms > 20) cfg.NumberOfRooms = 20;
+                    // ensure list length matches NumberOfRooms
                     if (cfg.RoomSeconds == null) cfg.RoomSeconds = new List<int>();
-                    while (cfg.RoomSeconds.Count < 15) cfg.RoomSeconds.Add(20);
-                    if (cfg.RoomSeconds.Count > 15) cfg.RoomSeconds = cfg.RoomSeconds.GetRange(0, 15);
+                    while (cfg.RoomSeconds.Count < cfg.NumberOfRooms) cfg.RoomSeconds.Add(20);
+                    if (cfg.RoomSeconds.Count > 20) cfg.RoomSeconds = cfg.RoomSeconds.GetRange(0, 20);
+                    // trim to NumberOfRooms
+                    if (cfg.RoomSeconds.Count > cfg.NumberOfRooms) cfg.RoomSeconds = cfg.RoomSeconds.GetRange(0, cfg.NumberOfRooms);
                     return cfg;
                 }
             }
             catch
             {
                 var def = new RoomConfig();
-                for (int i = 0; i < 15; i++) def.RoomSeconds.Add(20);
+                if (def.NumberOfRooms < 1) def.NumberOfRooms = 15;
+                if (def.NumberOfRooms > 20) def.NumberOfRooms = 20;
+                for (int i = 0; i < def.NumberOfRooms; i++) def.RoomSeconds.Add(20);
                 return def;
             }
         }

@@ -13,6 +13,8 @@ namespace ScaryHouse
         private Button btnSave;
         private Button btnSetAll;
         private NumericUpDown nudSetAll;
+        private ComboBox cbNumRooms;
+        private FlowLayoutPanel panel;
 
         public RoomSettingsForm(RoomConfig cfg)
         {
@@ -28,33 +30,33 @@ namespace ScaryHouse
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
 
-            var panel = new FlowLayoutPanel();
+            panel = new FlowLayoutPanel();
             panel.Dock = DockStyle.Fill;
             panel.FlowDirection = FlowDirection.TopDown;
             panel.Padding = new Padding(10);
             panel.AutoScroll = true;
             this.Controls.Add(panel);
 
-            for (int i = 0; i < 15; i++)
-            {
-                var p = new Panel();
-                p.Width = 360; p.Height = 36;
+            // number of rooms selector
+            var topPanel = new Panel();
+            topPanel.Width = 360; topPanel.Height = 36;
 
-                var lbl = new Label();
-                lbl.Text = $"Room {i + 1}";
-                lbl.Left = 4; lbl.Top = 8; lbl.Width = 120;
+            var lblCount = new Label();
+            lblCount.Text = "Number of rooms:";
+            lblCount.Left = 4; lblCount.Top = 8; lblCount.Width = 120;
 
-                var nud = new NumericUpDown();
-                nud.Left = 130; nud.Top = 4; nud.Width = 80;
-                nud.Minimum = 1; nud.Maximum = 3600;
-                nud.Value = config.RoomSeconds[i];
+            cbNumRooms = new ComboBox();
+            cbNumRooms.Left = 130; cbNumRooms.Top = 4; cbNumRooms.Width = 80; cbNumRooms.DropDownStyle = ComboBoxStyle.DropDownList;
+            for (int i = 1; i <= 20; i++) cbNumRooms.Items.Add(i.ToString());
+            cbNumRooms.SelectedIndexChanged += CbNumRooms_SelectedIndexChanged;
+            cbNumRooms.SelectedItem = config.NumberOfRooms.ToString();
 
-                p.Controls.Add(lbl);
-                p.Controls.Add(nud);
-                panel.Controls.Add(p);
+            topPanel.Controls.Add(lblCount);
+            topPanel.Controls.Add(cbNumRooms);
+            panel.Controls.Add(topPanel);
 
-                inputs.Add(nud);
-            }
+            // build initial inputs
+            BuildRoomInputs(config.NumberOfRooms);
 
             var bottom = new Panel();
             bottom.Height = 60; bottom.Dock = DockStyle.Bottom;
@@ -73,6 +75,60 @@ namespace ScaryHouse
             this.Controls.Add(bottom);
         }
 
+        private void CbNumRooms_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (int.TryParse(cbNumRooms.SelectedItem as string, out int v))
+            {
+                BuildRoomInputs(v);
+            }
+        }
+
+        private void BuildRoomInputs(int count)
+        {
+            // remove any existing room entries (keep top selector)
+            // clear panel and re-add top selector then entries
+            panel.Controls.Clear();
+
+            // re-add top selector panel
+            var topPanel = new Panel();
+            topPanel.Width = 360; topPanel.Height = 36;
+            var lblCount = new Label();
+            lblCount.Text = "Number of rooms:";
+            lblCount.Left = 4; lblCount.Top = 8; lblCount.Width = 120;
+            cbNumRooms.Left = 130; cbNumRooms.Top = 4; cbNumRooms.Width = 80;
+            topPanel.Controls.Add(lblCount);
+            topPanel.Controls.Add(cbNumRooms);
+            panel.Controls.Add(topPanel);
+
+            inputs.Clear();
+
+            // ensure config.RoomSeconds large enough
+            if (config.RoomSeconds == null) config.RoomSeconds = new List<int>();
+            while (config.RoomSeconds.Count < count) config.RoomSeconds.Add(20);
+            if (config.RoomSeconds.Count > 20) config.RoomSeconds = config.RoomSeconds.GetRange(0, 20);
+
+            for (int i = 0; i < count; i++)
+            {
+                var p = new Panel();
+                p.Width = 360; p.Height = 36;
+
+                var lbl = new Label();
+                lbl.Text = $"Room {i + 1}";
+                lbl.Left = 4; lbl.Top = 8; lbl.Width = 120;
+
+                var nud = new NumericUpDown();
+                nud.Left = 130; nud.Top = 4; nud.Width = 80;
+                nud.Minimum = 1; nud.Maximum = 3600;
+                nud.Value = config.RoomSeconds.Count > i ? config.RoomSeconds[i] : 20;
+
+                p.Controls.Add(lbl);
+                p.Controls.Add(nud);
+                panel.Controls.Add(p);
+
+                inputs.Add(nud);
+            }
+        }
+
         private void BtnSetAll_Click(object sender, EventArgs e)
         {
             int v = (int)nudSetAll.Value;
@@ -81,7 +137,16 @@ namespace ScaryHouse
 
         private void BtnSave_Click(object sender, EventArgs e)
         {
-            for (int i = 0; i < 15; i++)
+            int count = config.NumberOfRooms;
+            if (int.TryParse(cbNumRooms.SelectedItem as string, out int sel)) count = sel;
+            config.NumberOfRooms = count;
+
+            // ensure list length
+            if (config.RoomSeconds == null) config.RoomSeconds = new List<int>();
+            while (config.RoomSeconds.Count < count) config.RoomSeconds.Add(20);
+            if (config.RoomSeconds.Count > count) config.RoomSeconds = config.RoomSeconds.GetRange(0, count);
+
+            for (int i = 0; i < count; i++)
             {
                 config.RoomSeconds[i] = (int)inputs[i].Value;
             }
