@@ -1,20 +1,21 @@
-#include <ESP8266WiFi.h>
+#include <WiFi.h>
 #include <PubSubClient.h>
 
 // --- WiFi and MQTT settings ---
-const char* ssid = "Airtel_Prasad";
-const char* password = "Prasad@123";
-const char* mqtt_server = "192.168.1.6";
-int roomNo = 1; 
+const char* ssid = "TP-Link_AA04";
+const char* password = "12125951";
+const char* mqtt_server = "192.168.0.2";
 
 // --- GPIO configuration ---
-#define SWITCH1 D1
-#define LED_PIN LED_BUILTIN
-#define BATTERY_PIN A0
+#define SWITCH1 18
+#define SWITCH2 19
+#define SWITCH3 21
+#define LED_PIN 2
 
 // --- Globals ---
 WiFiClient espClient;
 PubSubClient client(espClient);
+int activeGroup = 0;  // 0 = none, 1 = group1, 2 = group2, 3 = group3
 unsigned long lastStatus = 0;
 
 // --- Function declarations ---
@@ -22,7 +23,6 @@ void setup_wifi();
 void reconnect();
 void callback(char* topic, byte* payload, unsigned int length);
 void blinkLED(int times);
-float readBatteryVoltage();
 
 void setup() {
   Serial.begin(115200);
@@ -30,6 +30,8 @@ void setup() {
   Serial.println("Starting ESP8266 Music Node...");
 
   pinMode(SWITCH1, INPUT_PULLUP);
+  pinMode(SWITCH2, INPUT_PULLUP);
+  pinMode(SWITCH3, INPUT_PULLUP);
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, HIGH);  // LED off (active low)
 
@@ -44,16 +46,34 @@ void loop() {
   }
   client.loop();
 
+  // --- Detect switch group selection ---
+  if (digitalRead(SWITCH1) == LOW) activeGroup = 1;
+  else if (digitalRead(SWITCH2) == LOW) activeGroup = 2;
+  else if (digitalRead(SWITCH3) == LOW) activeGroup = 3;
+  else activeGroup = 0;
 
-  if(digitalRead(SWITCH1) == LOW)  {
+  // --- Periodic status publish every 10 seconds ---
+
+  if (activeGroup > 0) {
 
     char topic[32];
-    sprintf(topic, "status/eachgate");
+    sprintf(topic, "status/maindoor");
 
-   // float voltage = readBatteryVoltage();
-    //String mac = WiFi.macAddress();
-    //String payload = "MAC: " + mac + ", Voltage: " + String(voltage, 2);
-    String payload = String(roomNo, 2);
+    String payload = String(activeGroup, 2);
+
+    client.publish(topic, payload.c_str());
+    Serial.print("[PUBLISH] ");
+    Serial.print(topic);
+    Serial.print(" -> ");
+    Serial.println(payload);
+  }
+  if (millis() - lastStatus > 10000) {
+    lastStatus = millis();
+
+    char topic[32];
+    sprintf(topic, "status/maindoor");
+
+    String payload = String(0,2);
 
     client.publish(topic, payload.c_str());
     Serial.print("[PUBLISH] ");
@@ -112,7 +132,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.println(msg);
 
   // Check if topic matches active group and message is "play"
- 
+  if (activeGroup > 0) {
+    char expectedTopic[32];
+    sprintf(expectedTopic, "music/group%d", activeGroup);
+    if (strcmp(topic, expectedTopic) == 0 && msg.equalsIgnoreCase("play")) {
+      Serial.println("PLAY command received - blinking LED!");
+      blinkLED(5);
+    }
+  }
 }
 
 // --- Blink LED function ---
@@ -125,10 +152,3 @@ void blinkLED(int times) {
   }
 }
 
-// --- Read battery voltage ---
-float readBatteryVoltage() {
-  int raw = analogRead(BATTERY_PIN);
-  float voltage = (raw / 1023.0) * 3.3;  // Adjust if using voltage divider
-  voltage = ((voltage/3.3)*100);
-  return voltage;
-}

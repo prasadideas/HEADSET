@@ -4,9 +4,9 @@
 #include <SoftwareSerial.h>
 
 // --- WiFi and MQTT settings ---
-const char* ssid = "Airtel_Prasad";
-const char* password = "Prasad@123";
-const char* mqtt_server = "192.168.1.6";
+const char* ssid = "TP-Link_AA04";
+const char* password = "12125951";
+const char* mqtt_server = "192.168.0.2";
 
 // --- GPIO configuration ---
 #define SWITCH1 D1
@@ -104,7 +104,7 @@ void setup() {
   pinMode(SWITCH3, INPUT_PULLUP);
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, HIGH);  // LED off (active low)
-
+  delay(2000);
   dfmp3.begin();
 
   dfmp3.reset();
@@ -124,14 +124,16 @@ void setup() {
   
   Serial.println("starting...");
 
-  
+  dfmp3.playMp3FolderTrack(1);  // sd:/mp3/0001.mp3
 
   setup_wifi();
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
+  delay(3000);
+  dfmp3.playMp3FolderTrack(2);
 
   // start the first track playing
-  dfmp3.playMp3FolderTrack(1);  // sd:/mp3/0001.mp3
+
 }
 
 void loop() {
@@ -144,6 +146,7 @@ void loop() {
   if (digitalRead(SWITCH1) == LOW) activeGroup = 1;
   else if (digitalRead(SWITCH2) == LOW) activeGroup = 2;
   else if (digitalRead(SWITCH3) == LOW) activeGroup = 3;
+  else activeGroup = 0;
 
   // --- Periodic status publish every 10 seconds ---
   if (millis() - lastStatus > 10000 && activeGroup > 0) {
@@ -154,8 +157,8 @@ void loop() {
 
     float voltage = readBatteryVoltage();
     String mac = WiFi.macAddress();
-    //String payload = "MAC: " + mac + ", Voltage: " + String(voltage, 2);
-    String payload = mac + "," + String(voltage, 2);
+
+    String payload = mac + String(activeGroup) + "," + String(voltage, 2);
 
     client.publish(topic, payload.c_str());
     Serial.print("[PUBLISH] ");

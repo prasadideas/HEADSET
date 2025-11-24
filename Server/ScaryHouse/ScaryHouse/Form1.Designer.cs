@@ -45,6 +45,7 @@
             this.buttonPub3 = new System.Windows.Forms.Button();
             this.buttonReset = new System.Windows.Forms.Button();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.label1 = new System.Windows.Forms.Label();
             this.tableLayoutPanel1.SuspendLayout();
             this.flowControls.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericTimeout)).BeginInit();
@@ -115,6 +116,7 @@
             this.flowControls.Controls.Add(this.buttonPub2);
             this.flowControls.Controls.Add(this.buttonPub3);
             this.flowControls.Controls.Add(this.buttonReset);
+            this.flowControls.Controls.Add(this.label1);
             this.flowControls.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flowControls.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.flowControls.Location = new System.Drawing.Point(873, 3);
@@ -245,6 +247,16 @@
             this.timer1.Interval = 2000;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
+            // label1
+            // 
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(138, 292);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(35, 13);
+            this.label1.TabIndex = 10;
+            this.label1.Text = "label1";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -280,6 +292,7 @@
         private System.Windows.Forms.Button buttonPub3;
         private System.Windows.Forms.Button buttonReset;
         private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.Label label1;
     }
 }
 

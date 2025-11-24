@@ -92,6 +92,8 @@ namespace Simulator
                 await _mqttClient.SubscribeAsync(topic, MqttQualityOfServiceLevel.AtLeastOnce);
                 AppendLog($"Subscribed to: {topic}");
 
+                timer1.Start();
+
 
             }
             catch (Exception ex)
@@ -238,6 +240,173 @@ namespace Simulator
         private void button18_Click(object sender, EventArgs e)
         {
             publishToServer("status/eachgate", "20");
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            if (mainDoorcheckBox.Checked)
+            {
+                publishToServer("status/maindoor", "00");
+            }
+            if (checkBox1.Checked)
+            {
+                publishToServer("status/eachgate1", "00");
+            }
+            if (checkBox2.Checked)
+            {
+                publishToServer("status/eachgate2", "00");
+            }
+            if (checkBox3.Checked)
+            {
+                publishToServer("status/eachgate3", "00");
+            }
+            if (checkBox4.Checked)
+            {
+                publishToServer("status/eachgate4", "00");
+            }
+            if (checkBox5.Checked)
+            {
+                publishToServer("status/eachgate5", "00");
+            }
+            if (checkBox6.Checked)
+            {
+                publishToServer("status/eachgate6", "00");
+            }
+            if (checkBox7.Checked)
+            {
+                publishToServer("status/eachgate7", "00");
+            }
+            if (checkBox8.Checked)
+            {
+                publishToServer("status/eachgate8", "00");
+            }
+            if (checkBox9.Checked)
+            {
+                publishToServer("status/eachgate9", "00");
+            }
+            if (checkBox10.Checked)
+            {
+                publishToServer("status/eachgate10", "00");
+            }
+            if (checkBox11.Checked)
+            {
+                publishToServer("status/eachgate11", "00");
+            }
+            if (checkBox12.Checked)
+            {
+                publishToServer("status/eachgate12", "00");
+            }
+            if (checkBox13.Checked)
+            {
+                publishToServer("status/eachgate13", "00");
+            }
+            if (checkBox14.Checked)
+            {
+                publishToServer("status/eachgate14", "00");
+            }
+            if (checkBox15.Checked)
+            {
+                publishToServer("status/eachgate15", "00");
+            }
+            if (checkBox16.Checked)
+            {
+                publishToServer("status/eachgate16", "00");
+            }
+            if (checkBox17.Checked)
+            {
+                publishToServer("status/eachgate17", "00");
+            }
+            if (checkBox18.Checked)
+            {
+                publishToServer("status/eachgate18", "00");
+            }
+            if (checkBox19.Checked)
+            {
+                publishToServer("status/eachgate19", "00");
+            }
+            if (checkBox20.Checked)
+            {
+                publishToServer("status/eachgate20", "00");
+            }
+            if(checkBox21.Checked)
+            {
+                publishToServer("status/group1", "12:23:45:56:45:301,00.00");
+                publishToServer("status/group1", "12:23:45:56:45:311,00.00");
+                publishToServer("status/group1", "12:23:45:56:45:321,00.00");
+                publishToServer("status/group1", "12:23:45:56:45:331,00.00");
+                publishToServer("status/group1", "12:23:45:56:45:341,00.00");
+            }
+            if (checkBox22.Checked)
+            {
+                publishToServer("status/group2", "12:23:45:56:45:302,00.00");
+                publishToServer("status/group2", "12:23:45:56:45:312,00.00");
+                publishToServer("status/group2", "12:23:45:56:45:322,00.00");
+                publishToServer("status/group2", "12:23:45:56:45:332,00.00");
+                publishToServer("status/group2", "12:23:45:56:45:342,00.00");
+            }
+            if (checkBox23.Checked)
+            {
+                publishToServer("status/group3", "12:23:45:56:45:303,00.00");
+                publishToServer("status/group3", "12:23:45:56:45:313,00.00");
+                publishToServer("status/group3", "12:23:45:56:45:323,00.00");
+                publishToServer("status/group3", "12:23:45:56:45:333,00.00");
+                publishToServer("status/group3", "12:23:45:56:45:343,00.00");
+            }
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button24_Click(object sender, EventArgs e)
+        {
+            checkBox1.Checked = false;
+            checkBox2.Checked = false;
+            checkBox3.Checked = false;
+            checkBox4.Checked = false;
+            checkBox5.Checked = false;
+            checkBox6.Checked = false;
+            checkBox7.Checked = false;
+            checkBox8.Checked = false;
+            checkBox9.Checked = false;
+            checkBox10.Checked = false;
+            checkBox11.Checked = false;
+            checkBox12.Checked = false;
+            checkBox13.Checked = false;
+            checkBox14.Checked = false;
+            checkBox15.Checked = false;
+            checkBox16.Checked = false;
+            checkBox17.Checked = false;
+            checkBox18.Checked = false;
+            checkBox19.Checked = false;
+            checkBox20.Checked = false;
+            mainDoorcheckBox.Checked = false;
+        }
+
+        private void button25_Click(object sender, EventArgs e)
+        {
+            checkBox1.Checked = true;
+            checkBox2.Checked = true;
+            checkBox3.Checked = true;
+            checkBox4.Checked = true;
+            checkBox5.Checked = true;
+            checkBox6.Checked = true;
+            checkBox7.Checked = true;
+            checkBox8.Checked = true;
+            checkBox9.Checked = true;
+            checkBox10.Checked = true;
+            checkBox11.Checked = true;
+            checkBox12.Checked = true;
+            checkBox13.Checked = true;
+            checkBox14.Checked = true;
+            checkBox15.Checked = true;
+            checkBox16.Checked = true;
+            checkBox17.Checked = true;
+            checkBox18.Checked = true;
+            checkBox19.Checked = true;
+            checkBox20.Checked = true;
+            mainDoorcheckBox.Checked = true;
         }
     }
 }
