@@ -101,7 +101,7 @@ namespace ScaryHouse
         private async void Form1_Load(object sender, EventArgs e)
         {
                label1.ForeColor = Color.White;
-            label1.Text = "v1.4";
+            label1.Text = "v1.2";
             CreateNodeControls(flowGroup1, 1);
             CreateNodeControls(flowGroup2, 2);
             CreateNodeControls(flowGroup3, 3);
@@ -559,14 +559,14 @@ namespace ScaryHouse
             }));
 
             // publish play message for room cells (columns >= 2)
-           /* if (col >= 2)
+            if (col >= 2)
             {
                 int group = row + 1;
                 int roomNo = col - 1; // columns: 0=Group,1=maingate,2=01,...
-                string topic = $"music/group{group}";
+                string topic = $"status/group{group}";
                 string payload = $"play,{roomNo.ToString("D2")}";
                 _ = Task.Run(async () => { try { await PublishIfConnected(topic, payload, false); } catch { } });
-            }*/
+            }
         }
 
         private void MarkGridCellPersistent(int row, int col)
@@ -584,14 +584,14 @@ namespace ScaryHouse
             }));
 
             // publish play message for room cells (columns >= 2)
-           /* if (col >= 2)
+            if (col >= 2)
             {
                 int group = row + 1;
                 int roomNo = col - 1; // columns: 0=Group,1=maingate,2=01,...
-                string topic = $"music/group{group}";
+                string topic = $"status/group{group}";
                 string payload = $"play,{roomNo.ToString("D2")}";
                 _ = Task.Run(async () => { try { await PublishIfConnected(topic, payload, false); } catch { } });
-            }*/
+            }
         }
 
         private void numericTimeout_ValueChanged(object sender, EventArgs e)

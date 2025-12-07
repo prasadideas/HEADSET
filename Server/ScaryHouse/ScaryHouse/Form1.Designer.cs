@@ -44,8 +44,8 @@
             this.buttonPub2 = new System.Windows.Forms.Button();
             this.buttonPub3 = new System.Windows.Forms.Button();
             this.buttonReset = new System.Windows.Forms.Button();
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.label1 = new System.Windows.Forms.Label();
+            this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.tableLayoutPanel1.SuspendLayout();
             this.flowControls.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericTimeout)).BeginInit();
@@ -67,7 +67,7 @@
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 1;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(1161, 815);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(1161, 550);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
             // flowGroup1
@@ -77,7 +77,7 @@
             this.flowGroup1.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.flowGroup1.Location = new System.Drawing.Point(3, 3);
             this.flowGroup1.Name = "flowGroup1";
-            this.flowGroup1.Size = new System.Drawing.Size(284, 809);
+            this.flowGroup1.Size = new System.Drawing.Size(284, 544);
             this.flowGroup1.TabIndex = 0;
             this.flowGroup1.WrapContents = false;
             // 
@@ -88,7 +88,7 @@
             this.flowGroup2.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.flowGroup2.Location = new System.Drawing.Point(293, 3);
             this.flowGroup2.Name = "flowGroup2";
-            this.flowGroup2.Size = new System.Drawing.Size(284, 809);
+            this.flowGroup2.Size = new System.Drawing.Size(284, 544);
             this.flowGroup2.TabIndex = 1;
             this.flowGroup2.WrapContents = false;
             // 
@@ -99,7 +99,7 @@
             this.flowGroup3.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.flowGroup3.Location = new System.Drawing.Point(583, 3);
             this.flowGroup3.Name = "flowGroup3";
-            this.flowGroup3.Size = new System.Drawing.Size(284, 809);
+            this.flowGroup3.Size = new System.Drawing.Size(284, 544);
             this.flowGroup3.TabIndex = 2;
             this.flowGroup3.WrapContents = false;
             // 
@@ -122,7 +122,7 @@
             this.flowControls.Location = new System.Drawing.Point(873, 3);
             this.flowControls.Name = "flowControls";
             this.flowControls.Padding = new System.Windows.Forms.Padding(10);
-            this.flowControls.Size = new System.Drawing.Size(285, 809);
+            this.flowControls.Size = new System.Drawing.Size(285, 544);
             this.flowControls.TabIndex = 3;
             this.flowControls.WrapContents = false;
             // 
@@ -242,11 +242,6 @@
             this.buttonReset.UseVisualStyleBackColor = true;
             this.buttonReset.Click += new System.EventHandler(this.buttonReset_Click);
             // 
-            // timer1
-            // 
-            this.timer1.Interval = 2000;
-            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
-            // 
             // label1
             // 
             this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -257,11 +252,16 @@
             this.label1.TabIndex = 10;
             this.label1.Text = "label1";
             // 
+            // timer1
+            // 
+            this.timer1.Interval = 2000;
+            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1161, 815);
+            this.ClientSize = new System.Drawing.Size(1161, 550);
             this.Controls.Add(this.tableLayoutPanel1);
             this.Name = "Form1";
             this.Text = "ScaryHouse - Node Monitor";

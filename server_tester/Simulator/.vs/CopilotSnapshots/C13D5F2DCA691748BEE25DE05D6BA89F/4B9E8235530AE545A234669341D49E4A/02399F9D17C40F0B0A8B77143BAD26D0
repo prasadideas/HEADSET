@@ -107,23 +107,36 @@ namespace Simulator
                     return;
                 }
 
-                // Subscribe specifically to the three topics you want using string overloads compatible with this MQTTnet version
-                string topic = "music/group1";
-                await _mqttClient.SubscribeAsync(topic, MqttQualityOfServiceLevel.AtLeastOnce);
-                AppendLog($"Subscribed to: {topic}");
+                // Subscribe specifically to the three topics you want (use explicit topic filter builder)
+                var topic1 = new MQTTnet.Client.Subscribing.MqttTopicFilterBuilder()
+                    .WithTopic("music/group1")
+                    .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
+                    .Build();
+                await _mqttClient.SubscribeAsync(topic1);
+                AppendLog($"Subscribed to: music/group1");
 
-                topic = "music/group2";
-                await _mqttClient.SubscribeAsync(topic, MqttQualityOfServiceLevel.AtLeastOnce);
-                AppendLog($"Subscribed to: {topic}");
+                var topic2 = new MQTTnet.Client.Subscribing.MqttTopicFilterBuilder()
+                    .WithTopic("music/group2")
+                    .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
+                    .Build();
+                await _mqttClient.SubscribeAsync(topic2);
+                AppendLog($"Subscribed to: music/group2");
 
-                topic = "music/group3";
-                await _mqttClient.SubscribeAsync(topic, MqttQualityOfServiceLevel.AtLeastOnce);
-                AppendLog($"Subscribed to: {topic}");
+                var topic3 = new MQTTnet.Client.Subscribing.MqttTopicFilterBuilder()
+                    .WithTopic("music/group3")
+                    .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
+                    .Build();
+                await _mqttClient.SubscribeAsync(topic3);
+                AppendLog($"Subscribed to: music/group3");
 
                 // Diagnostic wildcard subscription - remove this after you confirm messages arrive.
                 try
                 {
-                    await _mqttClient.SubscribeAsync("music/#", MqttQualityOfServiceLevel.AtLeastOnce);
+                    var wildcard = new MQTTnet.Client.Subscribing.MqttTopicFilterBuilder()
+                        .WithTopic("music/#")
+                        .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
+                        .Build();
+                    await _mqttClient.SubscribeAsync(wildcard);
                     AppendLog("Subscribed to diagnostic wildcard: music/#");
                 }
                 catch (Exception exWildcard)
