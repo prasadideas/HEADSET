@@ -709,28 +709,6 @@ namespace ScaryHouse
                 // Reset lastActiveMainGate if it pointed to this group
                 if (lastActiveMainGate == group) lastActiveMainGate = 0;
 
-                // Also reset this group's maingate cell (column 1) so maindoor status is cleared for the group
-                try
-                {
-                    string mainkey = row + ":1";
-                    if (gridLastSeen.ContainsKey(mainkey)) gridLastSeen.Remove(mainkey);
-                    if (statusGrid != null)
-                    {
-                        Invoke(new Action(() =>
-                        {
-                            try
-                            {
-                                var mainCell = statusGrid.Rows[row].Cells[1];
-                                mainCell.Style.BackColor = Color.Black;
-                                mainCell.Style.ForeColor = Color.White;
-                                mainCell.Value = null;
-                            }
-                            catch { }
-                        }));
-                    }
-                }
-                catch { }
-
                 // Move this group to the end of activation order so it becomes last
                 activationCounter++;
                 activationOrder[group] = activationCounter;

@@ -97,7 +97,7 @@ namespace Simulator
         private async void connectBtn_Click(object sender, EventArgs e)
         {
             var options = new MqttClientOptionsBuilder()
-                .WithTcpServer("192.168.1.7", 1883)
+                .WithTcpServer("192.168.1.5", 1883)
                 .WithClientId("WinFormsClient-" + Guid.NewGuid())
                 .WithCleanSession()
                 .Build();
