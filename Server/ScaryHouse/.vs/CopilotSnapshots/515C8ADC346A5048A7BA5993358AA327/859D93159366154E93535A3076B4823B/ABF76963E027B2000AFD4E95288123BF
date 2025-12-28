@@ -731,7 +731,26 @@ namespace ScaryHouse
                 }
                 catch { }
 
-                // NOTE: automatic maindoor publish removed. Use GUI buttons to publish maindoor reset per group.
+                // Publish a maindoor reset message so external devices can be set.
+                // Payload = group number + 10 (e.g. group 1 -> "11"). Sent to topic "status/maindoor".
+                try
+                {
+                    int payloadVal = group + 10;
+                    string payloadStr = payloadVal.ToString();
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await PublishIfConnected("status/maindoor", payloadStr, false);
+                            Logger.Log($"Published maindoor reset {payloadStr} for Group {group}");
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log($"Failed to publish maindoor reset for Group {group}: {ex.Message}");
+                        }
+                    });
+                }
+                catch { }
 
                 // Move this group to the end of activation order so it becomes last
                 activationCounter++;
@@ -953,10 +972,9 @@ namespace ScaryHouse
         }
 
         // Add missing pub handlers (wired in designer)
-        // repurposed buttons: maindoor reset for each group (payload = group + 10, e.g. group1 -> "11")
-        private async void buttonPub1_Click(object sender, EventArgs e) => await PublishIfConnected("status/maindoor", (1 + 10).ToString(), false);
-        private async void buttonPub2_Click(object sender, EventArgs e) => await PublishIfConnected("status/maindoor", (2 + 10).ToString(), false);
-        private async void buttonPub3_Click(object sender, EventArgs e) => await PublishIfConnected("status/maindoor", (3 + 10).ToString(), false);
+        private async void buttonPub1_Click(object sender, EventArgs e) => await PublishIfConnected("music/group1", "play");
+        private async void buttonPub2_Click(object sender, EventArgs e) => await PublishIfConnected("music/group2", "play");
+        private async void buttonPub3_Click(object sender, EventArgs e) => await PublishIfConnected("music/group3", "play");
 
         private async Task PublishIfConnected(string topic, string payload, bool showMessage = true)
         {

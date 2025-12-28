@@ -205,7 +205,7 @@
             this.buttonPub1.Name = "buttonPub1";
             this.buttonPub1.Size = new System.Drawing.Size(160, 23);
             this.buttonPub1.TabIndex = 4;
-            this.buttonPub1.Text = "Maindoor Reset: Group 1";
+            this.buttonPub1.Text = "Publish: music/group1";
             this.buttonPub1.UseVisualStyleBackColor = true;
             this.buttonPub1.Click += new System.EventHandler(this.buttonPub1_Click);
             // 
@@ -216,7 +216,7 @@
             this.buttonPub2.Name = "buttonPub2";
             this.buttonPub2.Size = new System.Drawing.Size(160, 23);
             this.buttonPub2.TabIndex = 5;
-            this.buttonPub2.Text = "Maindoor Reset: Group 2";
+            this.buttonPub2.Text = "Publish: music/group2";
             this.buttonPub2.UseVisualStyleBackColor = true;
             this.buttonPub2.Click += new System.EventHandler(this.buttonPub2_Click);
             // 
@@ -227,7 +227,7 @@
             this.buttonPub3.Name = "buttonPub3";
             this.buttonPub3.Size = new System.Drawing.Size(160, 23);
             this.buttonPub3.TabIndex = 6;
-            this.buttonPub3.Text = "Maindoor Reset: Group 3";
+            this.buttonPub3.Text = "Publish: music/group3";
             this.buttonPub3.UseVisualStyleBackColor = true;
             this.buttonPub3.Click += new System.EventHandler(this.buttonPub3_Click);
             // 

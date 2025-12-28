@@ -953,10 +953,9 @@ namespace ScaryHouse
         }
 
         // Add missing pub handlers (wired in designer)
-        // repurposed buttons: maindoor reset for each group (payload = group + 10, e.g. group1 -> "11")
-        private async void buttonPub1_Click(object sender, EventArgs e) => await PublishIfConnected("status/maindoor", (1 + 10).ToString(), false);
-        private async void buttonPub2_Click(object sender, EventArgs e) => await PublishIfConnected("status/maindoor", (2 + 10).ToString(), false);
-        private async void buttonPub3_Click(object sender, EventArgs e) => await PublishIfConnected("status/maindoor", (3 + 10).ToString(), false);
+        private async void buttonPub1_Click(object sender, EventArgs e) => await PublishIfConnected("music/group1", "play");
+        private async void buttonPub2_Click(object sender, EventArgs e) => await PublishIfConnected("music/group2", "play");
+        private async void buttonPub3_Click(object sender, EventArgs e) => await PublishIfConnected("music/group3", "play");
 
         private async Task PublishIfConnected(string topic, string payload, bool showMessage = true)
         {
