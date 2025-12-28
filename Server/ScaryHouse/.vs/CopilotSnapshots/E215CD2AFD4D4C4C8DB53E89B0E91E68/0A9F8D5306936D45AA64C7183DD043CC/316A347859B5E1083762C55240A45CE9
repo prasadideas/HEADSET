@@ -1,0 +1,255 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using System.Windows.Forms;
+
+namespace ScaryHouse
+{
+    public class RoomSettingsForm : Form
+    {
+        private RoomConfig config;
+        private List<NumericUpDown> inputs = new List<NumericUpDown>();
+        private List<ComboBox> screenSelectors = new List<ComboBox>();
+        private Button btnSave;
+        private Button btnSetAll;
+        private NumericUpDown nudSetAll;
+        private ComboBox cbNumRooms;
+        private ComboBox cbNumScreens;
+        private FlowLayoutPanel panel;
+
+        public RoomSettingsForm(RoomConfig cfg)
+        {
+            this.config = cfg;
+            Initialize();
+        }
+
+        private void Initialize()
+        {
+            this.Text = "Room Timers";
+            this.Size = new Size(480, 700);
+            this.StartPosition = FormStartPosition.CenterParent;
+            this.FormBorderStyle = FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
+
+            panel = new FlowLayoutPanel();
+            panel.Dock = DockStyle.Fill;
+            panel.FlowDirection = FlowDirection.TopDown;
+            panel.Padding = new Padding(10);
+            panel.AutoScroll = true;
+            this.Controls.Add(panel);
+
+            // top selector panel will be recreated by BuildRoomInputs, ensure cb controls exist
+            cbNumRooms = new ComboBox();
+            cbNumRooms.DropDownStyle = ComboBoxStyle.DropDownList;
+            for (int i = 1; i <= 20; i++) cbNumRooms.Items.Add(i.ToString());
+            cbNumRooms.SelectedIndexChanged += CbNumRooms_SelectedIndexChanged;
+            cbNumRooms.SelectedItem = config.NumberOfRooms.ToString();
+
+            cbNumScreens = new ComboBox();
+            cbNumScreens.DropDownStyle = ComboBoxStyle.DropDownList;
+            for (int i = 0; i <= 20; i++) cbNumScreens.Items.Add(i.ToString());
+            cbNumScreens.SelectedIndexChanged += CbNumScreens_SelectedIndexChanged;
+            cbNumScreens.SelectedItem = config.NumberOfScreens.ToString();
+
+            // build initial inputs (this will add top selector and screens selector)
+            BuildRoomInputs(config.NumberOfRooms);
+
+            var bottom = new Panel();
+            bottom.Height = 60; bottom.Dock = DockStyle.Bottom;
+
+            btnSave = new Button() { Text = "Save", Width = 90, Left = 300, Top = 12 };
+            btnSave.Click += BtnSave_Click;
+
+            btnSetAll = new Button() { Text = "Set All", Width = 90, Left = 20, Top = 12 };
+            btnSetAll.Click += BtnSetAll_Click;
+
+            nudSetAll = new NumericUpDown() { Left = 120, Top = 14, Width = 60, Minimum = 1, Maximum = 3600, Value = 20 };
+
+            bottom.Controls.Add(btnSetAll);
+            bottom.Controls.Add(nudSetAll);
+            bottom.Controls.Add(btnSave);
+            this.Controls.Add(bottom);
+        }
+
+        private void CbNumRooms_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (int.TryParse(cbNumRooms.SelectedItem as string, out int v))
+            {
+                BuildRoomInputs(v);
+            }
+        }
+
+        private void CbNumScreens_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (int.TryParse(cbNumScreens.SelectedItem as string, out int v))
+            {
+                BuildScreenInputs(v);
+            }
+        }
+
+        private void BuildRoomInputs(int count)
+        {
+            // clear panel and re-add top selector then screen selector then entries
+            panel.Controls.Clear();
+
+            // top selector panel for number of rooms
+            var topPanel = new Panel();
+            topPanel.Width = 420; topPanel.Height = 36;
+
+            var lblCount = new Label();
+            lblCount.Text = "Number of rooms:";
+            lblCount.Left = 4; lblCount.Top = 8; lblCount.Width = 120;
+
+            cbNumRooms.Left = 130; cbNumRooms.Top = 4; cbNumRooms.Width = 80;
+            if (!cbNumRooms.Items.Contains(count.ToString())) cbNumRooms.Items.Add(count.ToString());
+            cbNumRooms.SelectedItem = count.ToString();
+
+            topPanel.Controls.Add(lblCount);
+            topPanel.Controls.Add(cbNumRooms);
+            panel.Controls.Add(topPanel);
+
+            // screens selector panel
+            var screensPanel = new Panel();
+            screensPanel.Width = 420; screensPanel.Height = 36;
+
+            var lblScreens = new Label();
+            lblScreens.Text = "Number of screens:";
+            lblScreens.Left = 4; lblScreens.Top = 8; lblScreens.Width = 120;
+
+            cbNumScreens.Left = 130; cbNumScreens.Top = 4; cbNumScreens.Width = 80;
+            if (!cbNumScreens.Items.Contains(config.NumberOfScreens.ToString())) cbNumScreens.Items.Add(config.NumberOfScreens.ToString());
+            cbNumScreens.SelectedItem = config.NumberOfScreens.ToString();
+
+            screensPanel.Controls.Add(lblScreens);
+            screensPanel.Controls.Add(cbNumScreens);
+            panel.Controls.Add(screensPanel);
+
+            // build screen selectors based on current NumberOfScreens
+            int screensToBuild = config.NumberOfScreens;
+            if (int.TryParse(cbNumScreens.SelectedItem as string, out int selScreens)) screensToBuild = selScreens;
+            BuildScreenInputs(screensToBuild);
+
+            inputs.Clear();
+
+            // ensure config.RoomSeconds large enough
+            if (config.RoomSeconds == null) config.RoomSeconds = new List<int>();
+            while (config.RoomSeconds.Count < count) config.RoomSeconds.Add(20);
+            if (config.RoomSeconds.Count > 20) config.RoomSeconds = config.RoomSeconds.GetRange(0, 20);
+
+            for (int i = 0; i < count; i++)
+            {
+                var p = new Panel();
+                p.Width = 420; p.Height = 36;
+
+                var lbl = new Label();
+                lbl.Text = $"Room {i + 1}";
+                lbl.Left = 4; lbl.Top = 8; lbl.Width = 120;
+
+                var nud = new NumericUpDown();
+                nud.Left = 130; nud.Top = 4; nud.Width = 80;
+                nud.Minimum = 1; nud.Maximum = 3600;
+                nud.Value = config.RoomSeconds.Count > i ? config.RoomSeconds[i] : 20;
+
+                p.Controls.Add(lbl);
+                p.Controls.Add(nud);
+                panel.Controls.Add(p);
+
+                inputs.Add(nud);
+            }
+        }
+
+        private void BuildScreenInputs(int screensCount)
+        {
+            // remove any existing screen selector entries from panel (they are placed after top selectors)
+            // find index where screens section starts (after top selector panels)
+            // For simplicity, rebuild panel contents by preserving top selectors and room inputs later in BuildRoomInputs.
+
+            // We'll remove any existing screen selector controls (ComboBoxes) and recreate below the top panels.
+            // Remove previous screen selector controls from panel (if any)
+            screenSelectors.Clear();
+
+            // Insert screen selector entries immediately after the two top panels (which are first two controls)
+            int insertIndex = Math.Min(2, panel.Controls.Count);
+
+            // create screen selector controls
+            for (int i = 0; i < screensCount; i++)
+            {
+                var p = new Panel();
+                p.Width = 420; p.Height = 36;
+
+                var lbl = new Label();
+                lbl.Text = $"Screen {i + 1}";
+                lbl.Left = 4; lbl.Top = 8; lbl.Width = 120;
+
+                var cb = new ComboBox();
+                cb.Left = 130; cb.Top = 4; cb.Width = 120; cb.DropDownStyle = ComboBoxStyle.DropDownList;
+
+                // populate options: 0 = None, then 1..NumberOfRooms
+                cb.Items.Clear();
+                cb.Items.Add("0");
+                for (int r = 1; r <= config.NumberOfRooms; r++) cb.Items.Add(r.ToString());
+
+                // set selected to configured mapping if available
+                int selRoom = 0;
+                if (config.ScreenRooms != null && i < config.ScreenRooms.Count) selRoom = config.ScreenRooms[i];
+                cb.SelectedItem = selRoom.ToString();
+
+                p.Controls.Add(lbl);
+                p.Controls.Add(cb);
+
+                // insert at current insertIndex and increment so order preserved
+                panel.Controls.Add(p);
+                // move to correct position (place after existing top panels and previous screen panels)
+                panel.Controls.SetChildIndex(p, insertIndex + i);
+
+                screenSelectors.Add(cb);
+            }
+        }
+
+        private void BtnSetAll_Click(object sender, EventArgs e)
+        {
+            int v = (int)nudSetAll.Value;
+            foreach (var n in inputs) n.Value = v;
+        }
+
+        private void BtnSave_Click(object sender, EventArgs e)
+        {
+            int count = config.NumberOfRooms;
+            if (int.TryParse(cbNumRooms.SelectedItem as string, out int sel)) count = sel;
+            config.NumberOfRooms = count;
+
+            // ensure list length
+            if (config.RoomSeconds == null) config.RoomSeconds = new List<int>();
+            while (config.RoomSeconds.Count < count) config.RoomSeconds.Add(20);
+            if (config.RoomSeconds.Count > count) config.RoomSeconds = config.RoomSeconds.GetRange(0, count);
+
+            for (int i = 0; i < count; i++)
+            {
+                config.RoomSeconds[i] = (int)inputs[i].Value;
+            }
+
+            // save screens
+            int screens = config.NumberOfScreens;
+            if (int.TryParse(cbNumScreens.SelectedItem as string, out int ssel)) screens = ssel;
+            config.NumberOfScreens = screens;
+
+            if (config.ScreenRooms == null) config.ScreenRooms = new List<int>();
+            while (config.ScreenRooms.Count < screens) config.ScreenRooms.Add(0);
+            if (config.ScreenRooms.Count > screens) config.ScreenRooms = config.ScreenRooms.GetRange(0, screens);
+
+            for (int i = 0; i < screens; i++)
+            {
+                int room = 0;
+                if (i < screenSelectors.Count && int.TryParse(screenSelectors[i].SelectedItem as string, out int rsel)) room = rsel;
+                // validate room within range
+                if (room < 0 || room > config.NumberOfRooms) room = 0;
+                config.ScreenRooms[i] = room;
+            }
+
+            config.Save();
+            this.DialogResult = DialogResult.OK;
+            this.Close();
+        }
+    }
+}

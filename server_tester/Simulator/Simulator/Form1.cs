@@ -76,6 +76,12 @@ namespace Simulator
                             label6.Text = "Playing";
                             playCounter[2] = 5;
                         }
+                        else if (topic == "status/digitalscary")
+                        {
+                            AppendLog("status/digitalscary received: " + payload);
+                            label7.Text = payload;
+                        }
+
                     }));
                 }
 
@@ -91,7 +97,7 @@ namespace Simulator
         private async void connectBtn_Click(object sender, EventArgs e)
         {
             var options = new MqttClientOptionsBuilder()
-                .WithTcpServer("192.168.1.5", 1883)
+                .WithTcpServer("192.168.1.7", 1883)
                 .WithClientId("WinFormsClient-" + Guid.NewGuid())
                 .WithCleanSession()
                 .Build();
@@ -119,6 +125,11 @@ namespace Simulator
                 topic = "music/group3";
                 await _mqttClient.SubscribeAsync(topic, MqttQualityOfServiceLevel.AtLeastOnce);
                 AppendLog($"Subscribed to: {topic}");
+
+                topic = "status/digitalscary";
+                await _mqttClient.SubscribeAsync(topic, MqttQualityOfServiceLevel.AtLeastOnce);
+                AppendLog($"Subscribed to: {topic}");
+
 
                 // Diagnostic wildcard subscription - remove this after you confirm messages arrive.
                 try
@@ -486,6 +497,18 @@ namespace Simulator
                 playCounter[2]--;
                 label6.BackColor = Color.LightGreen;
             }
+        }
+
+        private void button26_Click(object sender, EventArgs e)
+        {
+            label7.Text = "";
+            publishToServer("control/digitalscary", comboBox1.SelectedItem.ToString() + comboBox2.SelectedItem.ToString());
+
+        }
+
+        private void button27_Click(object sender, EventArgs e)
+        {
+            label7.Text = "";
         }
     }
 }

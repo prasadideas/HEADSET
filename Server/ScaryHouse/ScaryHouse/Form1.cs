@@ -41,6 +41,9 @@ namespace ScaryHouse
         private int lastActiveMainGate = 0; // 0 = none, 1..3 = groups
         private Dictionary<int, HashSet<int>> groupActivatedEachGates = new Dictionary<int, HashSet<int>>();
 
+        // New: track current room number for each group (last applied eachgate)
+        private Dictionary<int, int> groupCurrentRoom = new Dictionary<int, int>();
+
         // Activation order and lag policy
         private Dictionary<int, int> activationOrder = new Dictionary<int, int>(); // group -> order (1 = first)
         private int activationCounter = 0;
@@ -66,6 +69,9 @@ namespace ScaryHouse
             groupActivatedEachGates[1] = new HashSet<int>();
             groupActivatedEachGates[2] = new HashSet<int>();
             groupActivatedEachGates[3] = new HashSet<int>();
+
+            // initialize current room tracking
+            groupCurrentRoom[1] = -1; groupCurrentRoom[2] = -1; groupCurrentRoom[3] = -1;
 
             // initialize playPublished flags
             playPublished[1] = false; playPublished[2] = false; playPublished[3] = false;
@@ -101,7 +107,7 @@ namespace ScaryHouse
         private async void Form1_Load(object sender, EventArgs e)
         {
                label1.ForeColor = Color.White;
-            label1.Text = "v1.4";
+            label1.Text = "v1.6";
             CreateNodeControls(flowGroup1, 1);
             CreateNodeControls(flowGroup2, 2);
             CreateNodeControls(flowGroup3, 3);
@@ -287,7 +293,7 @@ namespace ScaryHouse
                 await mqttClient.ConnectAsync(host, 1883, "ScaryHouseClient");
 
                 // subscribe to status topics including maindoor and eachgate variations
-                await mqttClient.SubscribeAsync(new[] { "status/#" });
+                await mqttClient.SubscribeAsync(new[] { "status/#", "control/digitalscary" });
 
                 Invoke(new Action(() => buttonConnect.Text = "Connected"));
                 Logger.Log($"Connected to MQTT broker {host}");
@@ -318,7 +324,7 @@ namespace ScaryHouse
                         client.MessageReceived += MqttClient_MessageReceived;
                         client.Disconnected += MqttClient_Disconnected;
                         await client.ConnectAsync(host, 1883, "ScaryHouseClient");
-                        await client.SubscribeAsync(new[] { "status/#" });
+                        await client.SubscribeAsync(new[] { "status/#", "control/digitalscary" });
 
                         var old = mqttClient; mqttClient = client; try { old?.Dispose(); } catch { }
                         Invoke(new Action(() => buttonConnect.Text = "Connected"));
@@ -509,6 +515,9 @@ namespace ScaryHouse
             // remember that this eachgate has been activated for this group
             set.Add(gateNum);
 
+            // update current room for the target group
+            try { groupCurrentRoom[targetGroup] = gateNum; } catch { }
+
             // schedule one-time delayed publish for this group's gate if not already done
             if (!playPublishedGates.TryGetValue(targetGroup, out var publishedSet))
             {
@@ -539,6 +548,61 @@ namespace ScaryHouse
             }
 
             Logger.Log($"EachGate event gate {gateNum} applied to Group {targetGroup}");
+        }
+
+        // NEW: handle digital screen control messages coming from devices
+        private void HandleDigitalScaryControl(string topic, string payload)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(payload)) return;
+                var p = payload.Trim();
+                // payload expected like "XXYY" where XX is screen id and YY is file number; consider only digits
+                var digits = new string(p.Where(char.IsDigit).ToArray());
+                if (string.IsNullOrWhiteSpace(digits)) return;
+
+                // extract screen number (first two digits) and file number (next two digits)
+                string screenStr = null;
+                string fileStr = null;
+                if (digits.Length >= 2) screenStr = digits.Substring(0, 2);
+                if (digits.Length >= 4) fileStr = digits.Substring(2, 2);
+                else if (digits.Length > 2) fileStr = digits.Substring(2); // take remaining digits if any
+
+                if (string.IsNullOrWhiteSpace(screenStr)) return;
+                if (!int.TryParse(screenStr, out int screenNum)) return;
+                if (screenNum < 1) return; // screens are 1-based
+
+                int fileNum;
+                if (!string.IsNullOrWhiteSpace(fileStr) && int.TryParse(fileStr, out int f)) fileNum = f; else fileNum = screenNum; // fallback: use screenNum if file not provided
+
+                // determine room number mapped to this digital screen from configuration
+                int roomNum = -1;
+                try
+                {
+                    if (roomConfig?.DigitalScreenRoom != null && roomConfig.DigitalScreenRoom.Count >= screenNum) roomNum = roomConfig.DigitalScreenRoom[screenNum - 1];
+                }
+                catch { }
+                if (roomNum < 1) roomNum = 1;
+
+                // determine group for this roomNum BUT only if a group is currently at this room (groupCurrentRoom)
+                int groupNum = -1;
+                for (int g = 1; g <= 3; g++)
+                {
+                    if (groupCurrentRoom.TryGetValue(g, out int cur) && cur == roomNum) { groupNum = g; break; }
+                }
+
+                // If no group currently at this room, do NOT publish
+                if (groupNum == -1) return;
+
+                // publish status message: "groupNum,fileNum"
+                string pubTopic = "status/digitalscary";
+                string pubPayload = $"{groupNum},{fileNum}";
+                _ = Task.Run(async () => { try { await PublishIfConnected(pubTopic, pubPayload, false); Logger.Log($"Published digital scary status {pubPayload}"); } catch (Exception ex) { Logger.Log($"Publish failed: {ex.Message}"); } });
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"HandleDigitalScaryControl error: {ex.Message}");
+            }
         }
 
         private void UpdateGridCellSeen(int row, int col)
@@ -704,6 +768,13 @@ namespace ScaryHouse
             {
                 string payloadStr = Encoding.UTF8.GetString(payload);
 
+                // control for digital screens
+                if (topic.IndexOf("control/digitalscary", StringComparison.InvariantCultureIgnoreCase) >= 0)
+                {
+                    HandleDigitalScaryControl(topic, payloadStr);
+                    return;
+                }
+
                 // table topics
                 if (topic.IndexOf("maindoor", StringComparison.InvariantCultureIgnoreCase) >= 0) { HandleMainDoorMessage(topic, payloadStr); return; }
                 if (topic.IndexOf("eachgate", StringComparison.InvariantCultureIgnoreCase) >= 0) { HandleEachGateMessage(topic, payloadStr); return; }
@@ -813,6 +884,9 @@ namespace ScaryHouse
             // reset per-group eachgate activation and last active maingate
             groupActivatedEachGates[1].Clear(); groupActivatedEachGates[2].Clear(); groupActivatedEachGates[3].Clear();
             lastActiveMainGate = 0;
+
+            // reset current room tracking
+            groupCurrentRoom[1] = -1; groupCurrentRoom[2] = -1; groupCurrentRoom[3] = -1;
 
             // reset activation order
             activationOrder.Clear();
